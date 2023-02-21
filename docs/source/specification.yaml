@@ -1,0 +1,498 @@
+openapi: 3.0.0
+info:
+  title: Skyway Payment API Docs
+  version: '1.0'
+  description: Skyway Merchant Payment API
+  contact:
+    email: support@skywaypayments.com
+servers:
+  - url: 'http://3.6.89.170:8081'
+    description: Base URL for integartion
+tags:
+  - name: Pay
+    description: 'The Pay endpoints process Customer payments, payin or payout.'
+  - name: Authorize
+    description: The Authorize endpoint processes a token to authorize a payment request.
+  - name: Refund
+    description: 'The Refund endpoint reverts a transaction.'
+security: []
+paths:
+  /api/transaction/v1/paymentToken:
+    post:
+      summary: Initiate Payment
+      security: []
+      tags:
+        - Pay
+      operationId: request-token
+      description: |
+        This endpoint presents a payment request to generate a request token. This token is then passed in [`/api/transaction/v1/consentToken`](https://skyway.stoplight.io/docs/skyway-stoplight-doc/branches/main/6c11940931df5-approve-transaction) to authenticate the fund transfer.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                institutionId:
+                  type: string
+                  description: 'Unique ID for institution, identifies the Merchant.'
+                  minLength: 1
+                  maxLength: 50
+                  example: e72bd3d6-3ad4-4ef0-8376-bd82573b060f
+                callbackURL:
+                  type: string
+                  description: Merchant URL to receive transaction result.
+                  minLength: 1
+                  maxLength: 255
+                  example: 'http://merchant.com/samples/callbackurl.asp"'
+                returnURL:
+                  type: string
+                  description: URL for next page in user flow.
+                  minLength: 1
+                  maxLength: 255
+                  example: 'http://merchant.com/samples/returnurl.asp'
+                hash:
+                  type: string
+                  description: |
+                    Apply [SHA512 Hash Generation Algorith](../docs/integration-guide.md#hash-your-key). This takes the key: `institutionId;institutionKey;cartId;type;amount;currency`. Key Example: e72bd3d6-3ad4-4ef0-8376bd82573b060f;S4WQ9JE7P9TTEXJE6FRSVKTJT;6232fbb7ecf29;PAY_IN;10.00;
+                  minLength: 1
+                  maxLength: 150
+                  example: 1342304470dfa 14341b5fce0055eedd680812c27 ddd885d40018b7210f01dc0f69b c827cd78612f41b1bd6623c04de 9bf23dcbaf268e19fc5a3620fb3f8 97e34
+                type:
+                  type: string
+                  description: 'Specifies direction of payment from a restricted list, i.e., is this a payment or a request for payment?'
+                  enum:
+                    - PAY_IN
+                    - PAY_OUT
+                  example: PAY_IN
+                cartId:
+                  type: string
+                  description: Unique transaction number typically a cart ID or reference/order ID.
+                  minLength: 1
+                  maxLength: 255
+                  example: 6232fbb7ecf29
+                currency:
+                  type: string
+                  minLength: 3
+                  maxLength: 3
+                  description: 'Supported [ISO 4217 standard](https://en.wikipedia.org/wiki/ISO_4217) 3-letter currency code.'
+                  example: USD
+                  enum:
+                    - USD
+                    - CNY
+                    - MYR
+                    - IDR
+                    - THB
+                    - EUR
+                    - GBP
+                    - JPY
+                    - AUD
+                    - NOK
+                    - CAD
+                    - INR
+                amount:
+                  type: string
+                  description: Value of the transaction.
+                  example: '10.00'
+                tipAmount:
+                  type: string
+                  description: Value of the tip; note this is for Merchant records. Amount is inclusive of this value.
+                  example: 0.99
+                exciseTax:
+                  type: string
+                  description: Value of excise tax based on transaction amount; note this is for Merchant records. Amount is inclusive of this value.
+                  example: 0.99
+                salesTax:
+                  type: string
+                  description: Value of the sales tax based on transaction amount; note this is for Merchant records. Amount is inclusive of this value.
+                  example: '0.99'
+                serviceFee:
+                  type: string
+                  description: Value of the service fee; note this is for Merchant records. Amount is inclusive of this value.
+                  example: 0.99
+                orderAmount:
+                  type: string
+                  description: Number of items that compose the order.
+                  example: '0.99'
+                payinRequest or payoutRequest:
+                  oneOf:
+                    - $ref: '#/components/schemas/payinRequest'
+                    - $ref: '#/components/schemas/payoutRequest'
+              required:
+                - institutionId
+                - callbackURL
+                - returnURL
+                - hash
+                - type
+                - currency
+                - amount
+                - payinRequest or payoutRequest
+            examples:
+              Pay-in request example:
+                value:
+                  institutionId: e72bd3d6-3ad4-4ef0-8376-bd82573b060f
+                  callbackURL: 'http://merchant.com/samples/callbackurl.asp"'
+                  returnURL: 'http://merchant.com/samples/returnurl.asp'
+                  hash: 1342304470dfa 14341b5fce0055eedd680812c27 ddd885d40018b7210f01dc0f69b c827cd78612f41b1bd6623c04de 9bf23dcbaf268e19fc5a3620fb3f8 97e34
+                  type: PAY_IN
+                  cartId: 6232fbb7ecf29
+                  currency: USD
+                  amount: '10.00'
+                  tipAmount: '0.99'
+                  exciseTax: '0.99'
+                  salesTax: '0.99'
+                  serviceFee: '0.99'
+                  orderAmount: '0.99'
+                  payinRequest:
+                    bankCode: BOA_USD
+                    firstname: Las
+                    lastname: Verti
+                    email: manju@ki.com
+                    phone: '9898989800'
+                    accountNumber: test@gmail.com
+                    address: California
+                    channelType: BANK_TRANSFER
+              Pay-out request example:
+                value:
+                  institutionId: e72bd3d6-3ad4-4ef0-8376-bd82573b060f
+                  callbackURL: 'http://merchant.com/samples/callbackurl.asp"'
+                  returnURL: 'http://merchant.com/samples/returnurl.asp'
+                  hash: 1342304470dfa 14341b5fce0055eedd680812c27 ddd885d40018b7210f01dc0f69b c827cd78612f41b1bd6623c04de 9bf23dcbaf268e19fc5a3620fb3f8 97e34
+                  type: PAY_IN
+                  cartId: 6232fbb7ecf29
+                  currency: USD
+                  amount: '10.00'
+                  tipAmount: '0.99'
+                  exciseTax: '0.99'
+                  salesTax: '0.99'
+                  serviceFee: '0.99'
+                  orderAmount: '0.99'
+                  payoutRequest:
+                    name: Name
+                    firstname: Las
+                    bankReference: reference
+                    accountReference: sssdsds
+                    province: clas
+                    city: City
+                    mobileNumber: '9898989800'
+                    bankCode: California
+      responses:
+        '200':
+          description: Success – token returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Written description of status.
+                    example: SUCCESS
+                    enum:
+                      - SUCCESS
+                      - PENDING
+                      - FAILURE
+                  statusMessage:
+                    type: string
+                    description: Expect null for 200s.
+                  token:
+                    description: |
+                      Token to enable asynchronous transaction of the Payee's request.
+
+                      > Warning! Token has 30 min lifespan.
+                    type: string
+                    example: ''
+                required:
+                  - status
+                  - statusMessage
+                  - token
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  header:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Written description of status.
+                        example: FAILURE
+                        enum:
+                          - SUCCESS
+                          - PENDING
+                          - FAILURE
+                      statusMessage:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            description: Description of error to assist with troubleshooting.
+                            example: Transaction_Failure.
+                          code:
+                            type: string
+                            description: Code to assist with error identification.
+                            example: G2100
+                    required:
+                      - status
+                      - statusMessage
+        '500':
+          description: ''
+          content:
+            application/json:
+              schema:
+                description: Internal Server Error
+    parameters: []
+  /api/transaction/v1/consentToken:
+    post:
+      summary: Approve Transaction
+      tags:
+        - Authorize
+      security: []
+      operationId: pass-token-for-approval
+      description: 'This endpoint validates the token passed to approve a Payee''s transaction request. The token is issued at endpoint `Request Token`; path `/api/transfer/v1/payIn/requestToken:`. This token must be passed in the body of this request.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                token:
+                  type: string
+                  minLength: 1
+                  example: yJhbGciOiJSUzUxMiJ9.
+              required:
+                - token
+      responses:
+        '200':
+          description: Success – token accepted; Angular page returned as payload.
+          content:
+            text/html:
+              schema:
+                type: string
+  /refund/v1/transaction:
+    post:
+      summary: Refund Transaction
+      tags:
+        - Refund
+      security: []
+      operationId: revert-payment-by-id
+      description: 'This endpoint reverts a Payment made based on the cartId.'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                cartId:
+                  type: string
+                  description: Unique transaction number for the refund (typically a cart ID or reference/order ID).
+                  minLength: 1
+                  maxLength: 255
+                  example: 6232fbb7ecf29
+                originalReference:
+                  type: string
+                  description: Unique reference number of the original transaction, i.e., the original cartId.
+                  minLength: 1
+                  maxLength: 255
+                  example: 6232fbb7ecf29
+                merchantId:
+                  type: string
+                  description: 'Unique ID for institution (as per institutionId); identifies the Merchant.'
+                  minLength: 1
+                  maxLength: 50
+                  example: e72bd3d6-3ad4-4ef0-8376-bd82573b060f
+                callbackURL:
+                  type: string
+                  description: Merchant URL to receive transaction result.
+                  minLength: 1
+                  maxLength: 255
+                  example: 'http://merchant.com/samples/callbackurl.asp"'
+                bankCode:
+                  type: string
+                  description: 'See supported [bank code list](https://skyway.stoplight.io/docs/skyway-stoplight-doc/branches/main/2a56325eff84c-supported-bank-list).'
+                  minLength: 1
+                  maxLength: 12
+                  example: BOA_USD
+                firstname:
+                  type: string
+                  description: 'Payee''s first name, as per the card/bank details held.'
+                  minLength: 1
+                  maxLength: 18
+                  example: John
+                lastName:
+                  type: string
+                  description: 'Payee''s last name, as per the card/bank details held.'
+                  minLength: 1
+                  maxLength: 18
+                  example: Stuart
+                email:
+                  type: string
+                  description: Payee's email address.
+                  example: John.stuart.5439@gmail.com
+                mobileNumber:
+                  type: string
+                  description: 'Payee''s telephone number, no area code.'
+                  minLength: 10
+                  maxLength: 10
+                  example: '9898989811'
+                signature:
+                  type: string
+                  description: The [`institutionKey` hased with md5](https://skyway.stoplight.io/docs/skyway-stoplight-doc/c65c476d3289c-integrate-with-skyway-payments#create-your-signature).
+                  minLength: 1
+                  maxLength: 150
+                  example: 9fe3b31c536bef82b9008c33b8fa6a7a
+                callbackUrl:
+                  type: string
+                  description: Merchant URL to receive transaction result.
+                  minLength: 1
+                  maxLength: 255
+                  example: 'http://merchant.com/samples/callbackurl.asp"'
+              required:
+                - lastName
+                - mobileNumber
+                - cartId
+                - bankCode
+                - cartId
+                - callbackUrl
+                - signature
+      responses:
+        '200':
+          description: Success – refund request accepted.
+          content:
+            text/html:
+              schema:
+                type: string
+                properties:
+                  status:
+                    description: Status of request
+                    example: Pending
+                  statusMessage:
+                    description: Message body for 200 response.
+        '400':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  header:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        description: Written description of status.
+                        example: FAILURE
+                        enum:
+                          - SUCCESS
+                          - PENDING
+                          - FAILURE
+                      statusMessage:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            description: Description of error to assist with troubleshooting.
+                            example: Transaction_Failure.
+                          code:
+                            type: string
+                            description: Code to assist with error identification.
+                            example: G2100
+                    required:
+                      - status
+                      - statusMessage
+components:
+  schemas:
+    payinRequest:
+      type: object
+      properties:
+        bankCode:
+          type: string
+          description: 'An optional field enabling Merchant flow to bypass the Bank Selection page allowing payee to directly proceed to the bank''s site; see supported [bank code list](https://skyway.stoplight.io/docs/skyway-stoplight-doc/branches/main/2a56325eff84c-supported-bank-list).'
+          minLength: 1
+          maxLength: 12
+          example: BOA_USD
+        firstname:
+          type: string
+          description: 'Payee''s first name, as per the card/bank details held.'
+          minLength: 1
+          maxLength: 18
+          example: John
+        lastname:
+          type: string
+          description: 'Payee''s last name, as per the card/bank details held.'
+          minLength: 1
+          maxLength: 18
+          example: Stuart
+        email:
+          type: string
+          description: Payee's email address.
+          example: John.stuart.5439@gmail.com
+        phone:
+          type: string
+          description: 'Payee''s telephone number, no area code.'
+          minLength: 10
+          maxLength: 10
+          example: '9898989811'
+        accountNumber:
+          type: string
+          description: |
+            Payee's account identifier. This depends on payment connector:
+              - zelle payment: Email address
+              - popmoney: Email address
+              - venmo: Username
+        address:
+          type: string
+          description: 'Payee''s address, as per the bank''s details held.'
+          example: California
+        channelType:
+          type: string
+          description: Payment option to be used for the transaction.
+          enum:
+            - BANK_TRANSFER
+            - OFFLINE_BANK_TRANSFER
+            - QROFFLINE
+            - CARD
+          example: BANK_TRANSFER
+      required:
+        - channelType
+        - accountNumber
+    payoutRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 'Recipients last name, as per the card/bank details held.'
+          minLength: 1
+          maxLength: 18
+          example: Stuart
+        firstname:
+          type: string
+          description: 'Recipient''s first name, as per the card/bank details held.'
+          minLength: 1
+          maxLength: 18
+          example: John
+        bankReference:
+          type: string
+          description: Bank routing number.
+        accountReference:
+          type: string
+          description: Receiving account number.
+        city:
+          type: string
+          description: 'Recipient''s residential city, as per the bank details held.'
+          example: Santa Cruz
+        mobileNumber:
+          type: string
+          description: 'Payee''s telephone number, no area code.'
+          minLength: 10
+          maxLength: 10
+          example: '9898989811'
+        bankCode:
+          type: string
+          description: 'An optional field enabling Merchant flow to bypass the Bank Selection page allowing payee to directly proceed to the bank''s site; see supported [bank code list](https://skyway.stoplight.io/docs/skyway-stoplight-doc/branches/main/2a56325eff84c-supported-bank-list).'
+          minLength: 1
+          maxLength: 12
+          example: BOA_USD
+      required:
+        - bankReference
+        - accountReference

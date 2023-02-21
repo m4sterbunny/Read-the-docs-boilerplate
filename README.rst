@@ -1,13 +1,21 @@
-Boilerplate Read The Docs
-==========================
+Boilerplate 3 tools
+===================
 
-This GitHub template includes fictional Python library
+1. Read the Docs boilerplate
+
+> This GitHub template includes fictional Python library
 with some basic Sphinx docs.
 
-Read the tutorial here:
+> Read the tutorial `here <https://docs.readthedocs.io/en/stable/tutorial/>`_
 
-https://docs.readthedocs.io/en/stable/tutorial/
+2. Vale
 
+> Examples of how to configure Vale
+
+3. Spectral
+
+> Light configure of Spectral
+> Once installed on repo, use `spectral lint swagger.yaml` i.e. swagger.yaml is the name/path of the file to be rendered
 
 Purpose BREAK HEADING STYLE
 ===========================
