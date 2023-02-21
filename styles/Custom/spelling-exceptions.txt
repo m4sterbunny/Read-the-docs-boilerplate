@@ -1,0 +1,21 @@
+# Note, this set is NOT necessarilty the variant required. It is used to quiet warnings to allow form to be suggested.
+
+allowlisting
+approvers
+blockchain
+block-chain
+counterparty
+crypto
+dapp
+defi
+e.g.
+offboarding
+offchain
+off-chain
+onchain
+on-chain
+on-ramping
+onramping
+off-ramping
+offramping
+metamask

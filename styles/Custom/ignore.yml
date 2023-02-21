@@ -1,0 +1,5 @@
+extends: spelling
+message: "Spelling check: '%s'."
+level: warning
+ignore:
+  - custom/spelling-exceptions.txt

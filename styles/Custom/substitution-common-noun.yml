@@ -1,0 +1,9 @@
+extends: substitution
+message: "Use '%s' instead of '%s'. Common noun (i.e. exception is sentence start)"
+ignorecase: false
+level: warning
+swap:
+  Address: address
+  Admin: admin
+  Rollup: rollup
+  

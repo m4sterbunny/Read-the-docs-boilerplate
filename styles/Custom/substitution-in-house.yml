@@ -1,0 +1,14 @@
+extends: substitution
+message: "Use '%s' instead of '%s'. In-house style."
+ignorecase: false
+level: warning
+swap:
+  back end: backend
+  back-end: backend
+  front end: frontend
+  front-end: frontend
+  cross chain: crosschain
+  cross-chain: crosschain
+  main net: mainnet
+  main-net: mainnet
+  peer-to-peer: P2P
